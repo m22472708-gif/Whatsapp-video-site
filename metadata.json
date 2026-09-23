@@ -1,0 +1,6 @@
+{
+  "name": "StreamPulse - Next-Gen Video Portal",
+  "description": "Modern video portal featuring fast browsing, dual-column stream layout, real-time views and comments, instant redirect player, and glass Telegram integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
