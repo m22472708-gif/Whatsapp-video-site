@@ -41,6 +41,8 @@ export interface AppSettings {
   telegramPopupDelaySec: number;
   telegramPopupEnabled: boolean;
   siteName: string;
+  logoUrl?: string;
+  tagline?: string;
   siteNotice?: string;
   categories?: string[];
   firebaseConfig?: {

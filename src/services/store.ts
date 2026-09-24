@@ -91,6 +91,135 @@ function normalizeBanner(id: string, data: any): Banner {
   };
 }
 
+function normalizeSettings(data: any, prevSettings?: AppSettings): AppSettings {
+  if (!data || typeof data !== 'object') return prevSettings || INITIAL_SETTINGS;
+
+  const current = prevSettings || INITIAL_SETTINGS;
+
+  // Search in data and nested objects like data.general or data.site or data.settings or data.config
+  const flatData = {
+    ...data,
+    ...(data.general && typeof data.general === 'object' ? data.general : {}),
+    ...(data.site && typeof data.site === 'object' ? data.site : {}),
+    ...(data.config && typeof data.config === 'object' ? data.config : {}),
+    ...(data.settings && typeof data.settings === 'object' ? data.settings : {}),
+  };
+
+  const rawSiteName = 
+    flatData.siteName ??
+    flatData.sitename ??
+    flatData.site_name ??
+    flatData.siteTitle ??
+    flatData.sitetitle ??
+    flatData.site_title ??
+    flatData.brandName ??
+    flatData.brand_name ??
+    flatData.brand ??
+    flatData.websiteName ??
+    flatData.website_name ??
+    flatData.appName ??
+    flatData.app_name ??
+    flatData.headerTitle ??
+    flatData.header_title ??
+    flatData.logoText ??
+    flatData.logo_text ??
+    flatData.title ??
+    flatData.name;
+
+  const siteName = rawSiteName !== undefined && String(rawSiteName).trim() !== ''
+    ? String(rawSiteName).trim()
+    : current.siteName;
+
+  const rawLogo =
+    flatData.logoUrl ??
+    flatData.logourl ??
+    flatData.logo_url ??
+    flatData.siteLogo ??
+    flatData.site_logo ??
+    flatData.logo ??
+    flatData.iconUrl ??
+    flatData.icon_url ??
+    flatData.icon ??
+    flatData.image ??
+    flatData.imageUrl ??
+    flatData.image_url;
+
+  const logoUrl = rawLogo !== undefined ? String(rawLogo).trim() : current.logoUrl;
+
+  const rawTagline =
+    flatData.tagline ??
+    flatData.tagLine ??
+    flatData.tag_line ??
+    flatData.siteTagline ??
+    flatData.site_tagline ??
+    flatData.subtitle ??
+    flatData.subTitle ??
+    flatData.sub_title ??
+    flatData.siteSubtitle ??
+    flatData.site_subtitle ??
+    flatData.bottomTitle ??
+    flatData.bottom_title ??
+    flatData.subName ??
+    flatData.sub_name ??
+    flatData.logoSubtitle ??
+    flatData.logo_subtitle ??
+    flatData.logoSubtitleText ??
+    flatData.logoSubText ??
+    flatData.logo_sub_text ??
+    flatData.logoText2 ??
+    flatData.logo_text_2 ??
+    flatData.secondaryTitle ??
+    flatData.secondary_title ??
+    flatData.subtext ??
+    flatData.sub_text ??
+    flatData.slogan ??
+    flatData.motto ??
+    flatData.caption ??
+    flatData.headerSubtitle ??
+    flatData.header_subtitle ??
+    flatData.siteDescription ??
+    flatData.site_description ??
+    flatData.siteNotice ??
+    flatData.site_notice ??
+    flatData.description ??
+    flatData.desc;
+
+  const tagline = rawTagline !== undefined ? String(rawTagline).trim() : current.tagline;
+
+  const rawTelegram =
+    flatData.telegramChannelUrl ??
+    flatData.telegramUrl ??
+    flatData.telegramLink ??
+    flatData.telegram ??
+    flatData.tgLink ??
+    flatData.tgChannel ??
+    flatData.telegram_channel_url;
+
+  const telegramChannelUrl = rawTelegram !== undefined && String(rawTelegram).trim() !== ''
+    ? String(rawTelegram).trim()
+    : current.telegramChannelUrl;
+
+  const telegramPopupTitle = flatData.telegramPopupTitle || flatData.popupTitle || current.telegramPopupTitle;
+  const telegramPopupDescription = flatData.telegramPopupDescription || flatData.popupDescription || current.telegramPopupDescription;
+  const telegramPopupDelaySec = Number(flatData.telegramPopupDelaySec || flatData.popupDelay || flatData.delay) || current.telegramPopupDelaySec || 4;
+  const telegramPopupEnabled = flatData.telegramPopupEnabled !== false && flatData.popupEnabled !== false;
+  const siteNotice = flatData.siteNotice || flatData.notice || current.siteNotice || '';
+  const categories = Array.isArray(flatData.categories) ? flatData.categories : (Array.isArray(flatData.list) ? flatData.list : current.categories);
+
+  return {
+    siteName,
+    logoUrl,
+    tagline,
+    telegramChannelUrl,
+    telegramPopupTitle,
+    telegramPopupDescription,
+    telegramPopupDelaySec,
+    telegramPopupEnabled,
+    siteNotice,
+    categories,
+  };
+}
+
 class StreamStore {
   private listeners: Set<StoreListener> = new Set();
   private videos: Video[] = [];
@@ -236,14 +365,33 @@ class StreamStore {
         }
       } catch {}
 
-      // 4. Fetch Settings doc ("settings/general")
+      // 4. Fetch Settings collection and docs
       try {
-        const setSnap = await getDoc(doc(db, 'settings', 'general'));
-        if (setSnap.exists()) {
-          const data = setSnap.data() as any;
-          this.settings = { ...this.settings, ...data };
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
-          this.notify();
+        const settingsSnap = await getDocs(collection(db, 'settings'));
+        if (!settingsSnap.empty) {
+          let mergedData: any = {};
+          settingsSnap.forEach((d) => {
+            const dData = d.data();
+            mergedData = { ...mergedData, ...dData };
+            if (d.id === 'categories' && Array.isArray(dData.list)) {
+              this.categories = dData.list.filter((c: any) => typeof c === 'string' && c.trim() !== '');
+              localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
+            }
+          });
+          if (Object.keys(mergedData).length > 0) {
+            this.settings = normalizeSettings(mergedData, this.settings);
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+            this.notify();
+          }
+        } else {
+          // Fallback to direct general doc
+          const setSnap = await getDoc(doc(db, 'settings', 'general'));
+          if (setSnap.exists()) {
+            const data = setSnap.data() as any;
+            this.settings = normalizeSettings(data, this.settings);
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+            this.notify();
+          }
         }
       } catch {}
 
@@ -254,6 +402,7 @@ class StreamStore {
 
   private async fetchRtdbData() {
     try {
+      // 1. Videos
       const snap = await getRtdb(ref(rtdb, 'videos'));
       const val = snap.val();
       if (val) {
@@ -270,6 +419,30 @@ class StreamStore {
         if (list.length > 0) {
           this.mergeVideos(list);
         }
+      }
+
+      // 2. Settings
+      const sSnap = await getRtdb(ref(rtdb, 'settings'));
+      const sVal = sSnap.val();
+      if (sVal) {
+        this.settings = normalizeSettings(sVal, this.settings);
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+        this.notify();
+      }
+
+      // 3. Categories
+      const cSnap = await getRtdb(ref(rtdb, 'categories'));
+      const cVal = cSnap.val();
+      if (cVal) {
+        if (Array.isArray(cVal)) {
+          this.categories = cVal.filter((c) => typeof c === 'string' && c.trim() !== '');
+        } else if (typeof cVal === 'object') {
+          this.categories = Object.values(cVal)
+            .map((c: any) => (typeof c === 'string' ? c : c?.name || c?.title || ''))
+            .filter(Boolean);
+        }
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
+        this.notify();
       }
     } catch {}
   }
@@ -353,16 +526,61 @@ class StreamStore {
         console.warn('Firestore categories listener:', err.message);
       });
 
+      // Settings Collection: Listen to ANY settings document (general, site, config, etc.)
+      onFirestoreSnapshot(collection(db, 'settings'), (snapshot) => {
+        let mergedData: any = {};
+        snapshot.forEach((docSnap) => {
+          const docData = docSnap.data();
+          mergedData = { ...mergedData, ...docData };
+          // If the doc is 'categories', handle its list
+          if (docSnap.id === 'categories' && Array.isArray(docData.list)) {
+            this.categories = docData.list.filter((c: any) => typeof c === 'string' && c.trim() !== '');
+            localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
+          }
+        });
+        if (Object.keys(mergedData).length > 0) {
+          this.settings = normalizeSettings(mergedData, this.settings);
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+          this.notify();
+        }
+      }, (err) => {
+        console.warn('Firestore settings collection listener:', err.message);
+      });
+
       // Settings General Doc: "settings/general"
       onFirestoreSnapshot(doc(db, 'settings', 'general'), (docSnap) => {
         if (docSnap.exists()) {
-          const data = docSnap.data() as AppSettings;
-          this.settings = { ...this.settings, ...data };
+          const data = docSnap.data() as any;
+          this.settings = normalizeSettings(data, this.settings);
           localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
           this.notify();
         }
       }, (err) => {
         console.warn('Firestore settings/general listener:', err.message);
+      });
+
+      // Settings Site Doc: "settings/site"
+      onFirestoreSnapshot(doc(db, 'settings', 'site'), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as any;
+          this.settings = normalizeSettings(data, this.settings);
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+          this.notify();
+        }
+      }, (err) => {
+        // silent
+      });
+
+      // Settings Config Doc: "config/general"
+      onFirestoreSnapshot(doc(db, 'config', 'general'), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as any;
+          this.settings = normalizeSettings(data, this.settings);
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+          this.notify();
+        }
+      }, (err) => {
+        // silent
       });
 
       // Comments Collection
@@ -435,6 +653,52 @@ class StreamStore {
             localStorage.setItem(STORAGE_KEYS.BANNERS, JSON.stringify(list));
             this.notify();
           }
+        }
+      });
+
+      // Settings in RTDB: ref('settings')
+      onRtdbValue(ref(rtdb, 'settings'), (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          this.settings = normalizeSettings(val, this.settings);
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+          this.notify();
+        }
+      });
+
+      // Site in RTDB: ref('site')
+      onRtdbValue(ref(rtdb, 'site'), (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          this.settings = normalizeSettings(val, this.settings);
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+          this.notify();
+        }
+      });
+
+      // General in RTDB: ref('general')
+      onRtdbValue(ref(rtdb, 'general'), (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          this.settings = normalizeSettings(val, this.settings);
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+          this.notify();
+        }
+      });
+
+      // Categories in RTDB: ref('categories')
+      onRtdbValue(ref(rtdb, 'categories'), (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          if (Array.isArray(val)) {
+            this.categories = val.filter((c) => typeof c === 'string' && c.trim() !== '');
+          } else if (typeof val === 'object') {
+            this.categories = Object.values(val)
+              .map((c: any) => (typeof c === 'string' ? c : c?.name || c?.title || ''))
+              .filter(Boolean);
+          }
+          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
+          this.notify();
         }
       });
     } catch (e) {

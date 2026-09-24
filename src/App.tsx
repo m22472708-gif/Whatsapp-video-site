@@ -76,6 +76,23 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // Dynamically sync document title and browser favicon from Firestore settings
+  useEffect(() => {
+    const siteTitle = settings.siteName || 'StreamPulse';
+    const siteTag = settings.tagline && settings.tagline.trim() !== '' ? ` - ${settings.tagline.trim()}` : '';
+    document.title = `${siteTitle}${siteTag}`;
+
+    if (settings.logoUrl && settings.logoUrl.trim() !== '') {
+      let faviconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!faviconLink) {
+        faviconLink = document.createElement('link');
+        faviconLink.rel = 'icon';
+        document.head.appendChild(faviconLink);
+      }
+      faviconLink.href = settings.logoUrl;
+    }
+  }, [settings.siteName, settings.tagline, settings.logoUrl]);
+
   // Filter and sort videos dynamically
   const filteredAndSortedVideos = useMemo(() => {
     let result = videos.filter((video) => {
@@ -145,6 +162,8 @@ export default function App() {
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
         telegramUrl={settings.telegramChannelUrl}
         siteName={settings.siteName}
+        logoUrl={settings.logoUrl}
+        tagline={settings.tagline}
         videos={videos}
         onLogoClick={() => {
           setActiveVideo(null);
@@ -345,6 +364,8 @@ export default function App() {
         }}
         telegramUrl={settings.telegramChannelUrl}
         siteName={settings.siteName}
+        logoUrl={settings.logoUrl}
+        tagline={settings.tagline}
         isDarkMode={isDarkMode}
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
       />

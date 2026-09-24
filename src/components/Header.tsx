@@ -29,6 +29,8 @@ interface HeaderProps {
   onOpenAdmin?: () => void;
   telegramUrl: string;
   siteName: string;
+  logoUrl?: string;
+  tagline?: string;
   onLogoClick: () => void;
   videos?: Video[];
 }
@@ -41,10 +43,18 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   telegramUrl,
   siteName,
+  logoUrl,
+  tagline,
   onLogoClick,
   videos = [],
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  // Reset logo error when logoUrl changes
+  useEffect(() => {
+    setLogoError(false);
+  }, [logoUrl]);
 
   // Prevent background scroll when drawer is open
   useEffect(() => {
@@ -83,6 +93,9 @@ export const Header: React.FC<HeaderProps> = ({
     return videos.filter((v) => v.category === cat).length;
   };
 
+  const displayTagline = tagline !== undefined ? tagline.trim() : 'HD Movies & Series';
+  const hasValidLogo = logoUrl && logoUrl.trim() !== '' && !logoError;
+
   return (
     <>
       <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-white/90 dark:bg-slate-950/90 border-b border-slate-200/80 dark:border-slate-800/80 transition-all duration-200 shadow-xs">
@@ -109,64 +122,81 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onLogoClick}
                 className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none group"
               >
-                {/* Modern Cinematic Play Icon with Gradient Glow */}
-                <div className="relative">
-                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-rose-600 via-red-500 to-amber-400 p-0.5 shadow-lg shadow-rose-600/30 group-hover:scale-105 active:scale-95 transition-transform duration-300">
-                    <div className="w-full h-full rounded-[14px] bg-slate-950 flex items-center justify-center relative overflow-hidden">
-                      {/* Subtle reflection */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-rose-600/30 via-transparent to-amber-400/20" />
-                      {/* Center Play glyph */}
-                      <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-rose-500 text-rose-500 ml-0.5 group-hover:fill-amber-400 group-hover:text-amber-400 transition-colors" />
-                    </div>
+                {/* Brand Logo: Dynamic Image or Gradient Icon */}
+                {hasValidLogo ? (
+                  <div className="relative">
+                    <img 
+                      src={logoUrl} 
+                      alt={siteName}
+                      onError={() => setLogoError(true)}
+                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl object-cover shadow-lg shadow-rose-600/20 border border-slate-200/60 dark:border-slate-800 group-hover:scale-105 active:scale-95 transition-transform duration-300"
+                    />
+                    <div className="absolute -inset-1 rounded-2xl bg-rose-500/20 blur-sm -z-10 group-hover:bg-rose-500/40 transition-colors" />
                   </div>
-                  {/* Subtle ambient backglow */}
-                  <div className="absolute -inset-1 rounded-2xl bg-rose-500/20 blur-sm -z-10 group-hover:bg-rose-500/40 transition-colors" />
-                </div>
+                ) : (
+                  <div className="relative">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-rose-600 via-red-500 to-amber-400 p-0.5 shadow-lg shadow-rose-600/30 group-hover:scale-105 active:scale-95 transition-transform duration-300">
+                      <div className="w-full h-full rounded-[14px] bg-slate-950 flex items-center justify-center relative overflow-hidden">
+                        {/* Subtle reflection */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-rose-600/30 via-transparent to-amber-400/20" />
+                        {/* Center Play glyph */}
+                        <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-rose-500 text-rose-500 ml-0.5 group-hover:fill-amber-400 group-hover:text-amber-400 transition-colors" />
+                      </div>
+                    </div>
+                    {/* Subtle ambient backglow */}
+                    <div className="absolute -inset-1 rounded-2xl bg-rose-500/20 blur-sm -z-10 group-hover:bg-rose-500/40 transition-colors" />
+                  </div>
+                )}
 
                 {/* Clean, Bold Logo Typography */}
                 <div className="flex flex-col">
                   <span className="font-black text-lg sm:text-2xl tracking-tight leading-none bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
                     {siteName}
                   </span>
-                  <span className="text-[9px] sm:text-[10px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
-                    HD Movies & Series
+                  <span className="text-[9px] sm:text-[10px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5 max-w-[180px] sm:max-w-xs truncate">
+                    {displayTagline}
                   </span>
                 </div>
               </div>
 
             </div>
 
-            {/* Right: Authentic, Pure Official Telegram Icon Button (Clean & Stunning) */}
+            {/* Right: Authentic Official Telegram Button */}
             <div className="flex items-center">
               <a
                 href={telegramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#24A1DE] hover:bg-[#1d93ce] text-white flex items-center justify-center shadow-lg shadow-[#24A1DE]/35 hover:scale-110 active:scale-95 transition-all duration-200 group"
+                className="relative flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#2AABEE] to-[#229ED9] hover:from-[#229ED9] hover:to-[#1b8bc2] text-white font-bold text-xs sm:text-sm shadow-lg shadow-[#24A1DE]/40 hover:shadow-xl hover:shadow-[#24A1DE]/60 hover:scale-105 active:scale-95 transition-all duration-300 group overflow-hidden"
                 aria-label="Join Official Telegram"
-                title="Join Official Telegram"
+                title="Join Our Official Telegram"
               >
-                {/* Official Telegram Paper Plane Vector */}
-                <svg 
-                  viewBox="0 0 24 24" 
-                  className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 fill-white -translate-x-[0.5px] group-hover:rotate-6 transition-transform duration-200"
-                >
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.943z"/>
-                </svg>
+                {/* Subtle shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full duration-1000 transition-transform" />
+                
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 shadow-xs group-hover:rotate-12 transition-transform">
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white"
+                  >
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.943z"/>
+                  </svg>
+                </div>
+                <span className="hidden sm:inline-block tracking-wide">Join Telegram</span>
+                <span className="sm:hidden tracking-wide">Telegram</span>
               </a>
             </div>
 
           </div>
-
         </div>
       </header>
 
-      {/* Dynamic Slide-Out Drawer Navigation */}
+      {/* Modern Slide-In Drawer Navigation Menu */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 flex animate-in fade-in duration-200">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop Blur Overlay */}
           <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
             onClick={() => setMenuOpen(false)}
           />
 
@@ -178,14 +208,27 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 p-0.5 shadow-sm">
-                    <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center">
-                      <Play className="w-3.5 h-3.5 fill-rose-500 text-rose-500 ml-0.5" />
+                  {hasValidLogo ? (
+                    <img 
+                      src={logoUrl} 
+                      alt={siteName} 
+                      className="w-8 h-8 rounded-xl object-cover shadow-sm border border-slate-200 dark:border-slate-700" 
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 p-0.5 shadow-sm">
+                      <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center">
+                        <Play className="w-3.5 h-3.5 fill-rose-500 text-rose-500 ml-0.5" />
+                      </div>
                     </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-base bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent leading-none">
+                      {siteName}
+                    </span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase mt-0.5 truncate max-w-[130px]">
+                      {displayTagline}
+                    </span>
                   </div>
-                  <span className="font-extrabold text-base bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent">
-                    {siteName}
-                  </span>
                 </div>
 
                 <button
@@ -239,24 +282,25 @@ export const Header: React.FC<HeaderProps> = ({
                         className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-between transition-all ${
                           isActive
                             ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
-                          <span className={isActive ? 'text-white' : 'text-slate-400'}>
+                        <div className="flex items-center gap-3">
+                          <span className={isActive ? 'text-white' : 'text-rose-500 dark:text-rose-400'}>
                             {getCategoryIcon(cat)}
                           </span>
                           <span>{cat}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          {count > 0 && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                              isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                            }`}>
-                              {count}
-                            </span>
-                          )}
-                          <ChevronRight className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-400 opacity-40'}`} />
+
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
+                            isActive 
+                              ? 'bg-white/20 text-white' 
+                              : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                          }`}>
+                            {count}
+                          </span>
+                          <ChevronRight className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                         </div>
                       </button>
                     );
