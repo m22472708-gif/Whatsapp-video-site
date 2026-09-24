@@ -4,7 +4,7 @@ export interface Video {
   duration: string; // e.g., "12:45"
   category: string;
   thumbnailUrl: string;
-  directLink: string; // The URL to redirect to after 10s
+  directLink: string; // The URL to redirect to
   views: number;
   likes: number;
   description?: string;
@@ -42,6 +42,7 @@ export interface AppSettings {
   telegramPopupEnabled: boolean;
   siteName: string;
   siteNotice?: string;
+  categories?: string[];
   firebaseConfig?: {
     apiKey?: string;
     authDomain?: string;
@@ -52,14 +53,4 @@ export interface AppSettings {
   };
 }
 
-export type Category = 
-  | 'All'
-  | 'Movies'
-  | 'Web Series'
-  | 'Action'
-  | 'Drama'
-  | 'Bangla'
-  | 'Thriller'
-  | 'Comedy'
-  | 'Anime'
-  | 'Trailers';
+export type Category = string;

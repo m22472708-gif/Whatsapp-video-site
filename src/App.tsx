@@ -17,8 +17,6 @@ import { VideoCard } from './components/VideoCard';
 import { VideoPlayView } from './components/VideoPlayView';
 import { TelegramPopup } from './components/TelegramPopup';
 import { Footer } from './components/Footer';
-import { AdminPanel } from './components/AdminPanel';
-import { AdminLoginModal } from './components/AdminLoginModal';
 import { 
   Film, 
   Flame, 
@@ -29,19 +27,6 @@ import {
   Heart,
   SlidersHorizontal
 } from 'lucide-react';
-
-const CATEGORIES: Category[] = [
-  'All',
-  'Movies',
-  'Web Series',
-  'Action',
-  'Drama',
-  'Bangla',
-  'Thriller',
-  'Comedy',
-  'Anime',
-  'Trailers',
-];
 
 type SortOption = 'trending' | 'latest' | 'liked';
 
@@ -56,6 +41,7 @@ export default function App() {
   // Store data states
   const [videos, setVideos] = useState<Video[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [categories, setCategories] = useState<string[]>(() => store.getCategories());
   const [settings, setSettings] = useState<AppSettings>(store.getSettings());
 
   // Navigation & Filter states
@@ -63,10 +49,6 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('trending');
   const [activeVideo, setActiveVideo] = useState<Video | null>(null);
-
-  // Admin states
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
 
   // Initialize theme class
   useEffect(() => {
@@ -85,24 +67,13 @@ export default function App() {
     const updateData = () => {
       setVideos([...store.getVideos()]);
       setBanners([...store.getBanners()]);
+      setCategories([...store.getCategories()]);
       setSettings({ ...store.getSettings() });
     };
 
     updateData();
     const unsubscribe = store.subscribe(updateData);
     return () => unsubscribe();
-  }, []);
-
-  // Check for #admin in URL hash or query params
-  useEffect(() => {
-    const handleHash = () => {
-      if (window.location.hash === '#admin' || window.location.search.includes('admin=true')) {
-        setIsAdminOpen(true);
-      }
-    };
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
   // Filter and sort videos dynamically
@@ -167,12 +138,11 @@ export default function App() {
           setSelectedCategory(cat);
           setActiveVideo(null);
         }}
-        categories={CATEGORIES}
+        categories={categories}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         isDarkMode={isDarkMode}
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
-        onOpenAdmin={() => setIsAdminLoginOpen(true)}
         telegramUrl={settings.telegramChannelUrl}
         siteName={settings.siteName}
         videos={videos}
@@ -199,6 +169,7 @@ export default function App() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             allVideos={videos}
+            telegramUrl={settings.telegramChannelUrl}
           />
         ) : (
           /* Home Page View */
@@ -325,20 +296,24 @@ export default function App() {
                 <div className="py-16 text-center rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
                   <Film className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                   <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-200">
-                    No videos match your filter
+                    {videos.length === 0 ? 'No videos posted yet' : 'No videos match your filter'}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                    Try searching for another keyword or browse different categories in the menu.
+                    {videos.length === 0
+                      ? 'Videos uploaded from the Admin Panel will appear here automatically in real-time.'
+                      : 'Try searching for another keyword or browse different categories in the menu.'}
                   </p>
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('All');
-                    }}
-                    className="mt-4 px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition-transform active:scale-95"
-                  >
-                    Reset All Filters
-                  </button>
+                  {videos.length > 0 && (searchQuery || selectedCategory !== 'All') && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory('All');
+                      }}
+                      className="mt-4 px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition-transform active:scale-95"
+                    >
+                      Reset All Filters
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
@@ -362,40 +337,17 @@ export default function App() {
 
       {/* Footer */}
       <Footer
-        categories={CATEGORIES}
+        categories={categories}
         onSelectCategory={(cat) => {
           setSelectedCategory(cat);
           setActiveVideo(null);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        onOpenAdmin={() => setIsAdminLoginOpen(true)}
         telegramUrl={settings.telegramChannelUrl}
         siteName={settings.siteName}
         isDarkMode={isDarkMode}
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
       />
-
-      {/* Admin Login Dialog */}
-      <AdminLoginModal
-        isOpen={isAdminLoginOpen}
-        onClose={() => setIsAdminLoginOpen(false)}
-        onSuccess={() => {
-          setIsAdminLoginOpen(false);
-          setIsAdminOpen(true);
-        }}
-      />
-
-      {/* Full Admin Management Panel */}
-      {isAdminOpen && (
-        <AdminPanel
-          onClose={() => setIsAdminOpen(false)}
-          videos={videos}
-          banners={banners}
-          settings={settings}
-          categories={CATEGORIES}
-          isDarkMode={isDarkMode}
-        />
-      )}
     </div>
   );
 }

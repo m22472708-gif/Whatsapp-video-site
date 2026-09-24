@@ -26,6 +26,7 @@ interface VideoPlayViewProps {
   onBack: () => void;
   onSelectRelatedVideo: (video: Video) => void;
   allVideos: Video[];
+  telegramUrl?: string;
 }
 
 export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
@@ -33,6 +34,7 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
   onBack,
   onSelectRelatedVideo,
   allVideos,
+  telegramUrl = 'https://t.me/streampulse_official',
 }) => {
   // Real-time state
   const [currentVideo, setCurrentVideo] = useState<Video>(video);
@@ -175,6 +177,9 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
     .filter((v) => v.id !== currentVideo.id)
     .slice(0, 6);
 
+  const fallbackThumbnail = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=700&auto=format&fit=crop&q=80';
+  const currentThumbnail = (currentVideo.thumbnailUrl && currentVideo.thumbnailUrl.trim() !== '') ? currentVideo.thumbnailUrl : fallbackThumbnail;
+
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
       
@@ -203,8 +208,8 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
             {/* Video Canvas Container */}
             <div className="relative aspect-video w-full overflow-hidden flex items-center justify-center bg-black">
               <img
-                src={currentVideo.thumbnailUrl}
-                alt={currentVideo.title}
+                src={currentThumbnail}
+                alt={currentVideo.title || 'Video'}
                 className={`w-full h-full object-cover transition-all duration-500 ${
                   isLoadingStream ? 'opacity-50 blur-xs' : 'opacity-85 group-hover:scale-102'
                 }`}
@@ -396,6 +401,34 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
               </div>
 
             </div>
+
+            {/* Telegram Channel Join Call-To-Action (Live sync from Admin Settings) */}
+            {telegramUrl && (
+              <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-sky-500/10 via-blue-500/5 to-transparent border border-sky-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#24A1DE] flex items-center justify-center text-white shrink-0 shadow-md shadow-sky-500/30">
+                    <Send className="w-5 h-5 ml-0.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                      Join Our Official Telegram Channel
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Get daily direct HD video links & movie requests first!
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={telegramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-xl bg-[#24A1DE] hover:bg-[#1d93ce] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-sky-500/25 transition-all transform active:scale-95 shrink-0"
+                >
+                  <span>Join Telegram</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
 
           </div>
 

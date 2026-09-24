@@ -1,12 +1,12 @@
 import React from 'react';
-import { Film, Send, Heart, Shield, Lock, ExternalLink, Sun, Moon } from 'lucide-react';
+import { Film, Send, Heart, Shield, ExternalLink, Sun, Moon } from 'lucide-react';
 import { Category } from '../types';
 
 interface FooterProps {
   categories: Category[];
   onSelectCategory: (cat: Category) => void;
   telegramUrl: string;
-  onOpenAdmin: () => void;
+  onOpenAdmin?: () => void;
   siteName: string;
   isDarkMode: boolean;
   onToggleTheme: () => void;
@@ -16,7 +16,6 @@ export const Footer: React.FC<FooterProps> = ({
   categories,
   onSelectCategory,
   telegramUrl,
-  onOpenAdmin,
   siteName,
   isDarkMode,
   onToggleTheme,
@@ -126,16 +125,6 @@ export const Footer: React.FC<FooterProps> = ({
 
           <div className="flex items-center gap-4">
             <span className="text-[11px] text-slate-500">All direct links hosted on high-speed CDN.</span>
-            
-            {/* Discreet Admin Portal Link */}
-            <button
-              onClick={onOpenAdmin}
-              className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-[11px] p-1 rounded transition-colors"
-              title="Admin Panel Login"
-            >
-              <Lock className="w-3 h-3" />
-              <span>Admin</span>
-            </button>
           </div>
         </div>
 

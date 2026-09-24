@@ -29,6 +29,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onSelect, isLiked: 
     setTimeout(() => setIsLiking(false), 400);
   };
 
+  const fallbackThumbnail = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=700&auto=format&fit=crop&q=80';
+  const thumbnailSrc = (video.thumbnailUrl && video.thumbnailUrl.trim() !== '') ? video.thumbnailUrl : fallbackThumbnail;
+
   return (
     <div
       onClick={() => onSelect(video)}
@@ -37,8 +40,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onSelect, isLiked: 
       {/* Cinematic Thumbnail Canvas */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-950">
         <img
-          src={video.thumbnailUrl}
-          alt={video.title}
+          src={thumbnailSrc}
+          alt={video.title || 'Video'}
           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
           loading="lazy"
         />

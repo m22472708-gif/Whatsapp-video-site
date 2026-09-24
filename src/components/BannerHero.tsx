@@ -8,7 +8,10 @@ interface BannerHeroProps {
 }
 
 export const BannerHero: React.FC<BannerHeroProps> = ({ banners, onSelectBanner }) => {
-  const activeBanners = banners.filter((b) => b.active);
+  // Only use banners that have a valid non-empty imageUrl
+  const activeBanners = banners.filter(
+    (b) => b.active && typeof b.imageUrl === 'string' && b.imageUrl.trim() !== ''
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -22,6 +25,7 @@ export const BannerHero: React.FC<BannerHeroProps> = ({ banners, onSelectBanner 
   if (activeBanners.length === 0) return null;
 
   const current = activeBanners[currentIndex] || activeBanners[0];
+  if (!current || !current.imageUrl) return null;
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -36,13 +40,15 @@ export const BannerHero: React.FC<BannerHeroProps> = ({ banners, onSelectBanner 
   return (
     <div className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4">
       {/* Dynamic Ambient Glow Behind Banner (Theater backlight effect) */}
-      <div className="absolute inset-x-8 top-6 bottom-4 -z-10 rounded-3xl overflow-hidden opacity-45 dark:opacity-35 blur-3xl transition-all duration-1000 transform scale-102 pointer-events-none">
-        <img
-          src={current.imageUrl}
-          alt=""
-          className="w-full h-full object-cover"
-        />
-      </div>
+      {current.imageUrl && (
+        <div className="absolute inset-x-8 top-6 bottom-4 -z-10 rounded-3xl overflow-hidden opacity-45 dark:opacity-35 blur-3xl transition-all duration-1000 transform scale-102 pointer-events-none">
+          <img
+            src={current.imageUrl}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
 
       <div 
         onClick={() => onSelectBanner(current)}
@@ -50,13 +56,15 @@ export const BannerHero: React.FC<BannerHeroProps> = ({ banners, onSelectBanner 
       >
         {/* Banner Picture Only (no buttons, clean high-impact cinema visual) */}
         <div className="relative h-44 sm:h-72 md:h-96 lg:h-[420px] w-full overflow-hidden bg-slate-950">
-          <img
-            key={current.id || currentIndex}
-            src={current.imageUrl}
-            alt={current.title}
-            className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-700 ease-out animate-in fade-in duration-500"
-            loading="eager"
-          />
+          {current.imageUrl && (
+            <img
+              key={current.id || currentIndex}
+              src={current.imageUrl}
+              alt={current.title || 'Featured Banner'}
+              className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-700 ease-out animate-in fade-in duration-500"
+              loading="eager"
+            />
+          )}
 
           {/* Subtle Cinema Vignette */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />

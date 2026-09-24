@@ -11,40 +11,48 @@ export const TelegramPopup: React.FC<TelegramPopupProps> = ({ settings }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
-    if (!settings.telegramPopupEnabled) return;
+    // Only disable if explicitly set to false
+    if (settings && settings.telegramPopupEnabled === false) return;
 
-    // Check session or local storage
-    const dismissed = sessionStorage.getItem('streampulse_tg_dismissed');
+    // Check if user explicitly checked "Don't show again"
+    const dismissed = localStorage.getItem('streampulse_tg_permanent_dismiss');
     if (dismissed === 'true') return;
 
-    const delayMs = (settings.telegramPopupDelaySec || 4) * 1000;
+    const delaySec = Number(settings?.telegramPopupDelaySec) || 4;
+    const delayMs = Math.max(1000, delaySec * 1000);
+
     const timer = setTimeout(() => {
       setIsOpen(true);
     }, delayMs);
 
     return () => clearTimeout(timer);
-  }, [settings.telegramPopupEnabled, settings.telegramPopupDelaySec]);
+  }, [settings?.telegramPopupEnabled, settings?.telegramPopupDelaySec]);
 
   const handleClose = () => {
     setIsOpen(false);
     if (dontShowAgain) {
-      sessionStorage.setItem('streampulse_tg_dismissed', 'true');
+      localStorage.setItem('streampulse_tg_permanent_dismiss', 'true');
     }
   };
 
   const handleJoin = () => {
-    sessionStorage.setItem('streampulse_tg_dismissed', 'true');
+    if (dontShowAgain) {
+      localStorage.setItem('streampulse_tg_permanent_dismiss', 'true');
+    }
     setIsOpen(false);
-    window.open(settings.telegramChannelUrl, '_blank', 'noopener,noreferrer');
   };
 
   if (!isOpen) return null;
+
+  const title = settings?.telegramPopupTitle || 'Join Our Official Telegram Channel';
+  const description = settings?.telegramPopupDescription || 'Get daily direct HD movie links, latest web series, exclusive updates & requested videos first!';
+  const telegramUrl = settings?.telegramChannelUrl || 'https://t.me/streampulse_official';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
       
       {/* Glassmorphism Card */}
-      <div className="relative w-full max-w-md rounded-3xl p-6 sm:p-7 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.4)] text-slate-900 dark:text-white transform animate-in zoom-in-95 duration-250">
+      <div className="relative w-full max-w-md rounded-3xl p-6 sm:p-7 overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.4)] text-slate-900 dark:text-white transform animate-in zoom-in-95 duration-250">
         
         {/* Ambient background glow */}
         <div className="absolute -top-16 -right-16 w-36 h-36 rounded-full bg-sky-500/20 blur-2xl pointer-events-none" />
@@ -53,7 +61,7 @@ export const TelegramPopup: React.FC<TelegramPopupProps> = ({ settings }) => {
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white bg-slate-100/60 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
           aria-label="Close popup"
         >
           <X className="w-4 h-4" />
@@ -73,29 +81,32 @@ export const TelegramPopup: React.FC<TelegramPopupProps> = ({ settings }) => {
           </div>
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 text-xs font-bold mb-2">
-            <Sparkles className="w-3 h-3 text-sky-500" />
-            <span>Official Community</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 text-[11px] font-extrabold uppercase tracking-wider mb-2 border border-sky-200 dark:border-sky-800">
+            <Sparkles className="w-3 h-3" />
+            <span>VIP Community</span>
           </div>
 
           {/* Title */}
-          <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight mb-2">
-            {settings.telegramPopupTitle}
-          </h3>
+          <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-snug">
+            {title}
+          </h2>
 
-          {/* Message */}
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed max-w-sm">
-            {settings.telegramPopupDescription}
+          {/* Description */}
+          <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xs leading-relaxed">
+            {description}
           </p>
 
           {/* Primary CTA Button */}
-          <button
+          <a
+            href={telegramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={handleJoin}
-            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-xl shadow-sky-500/30 transition-all transform active:scale-98"
+            className="w-full mt-5 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-xl shadow-sky-500/30 transition-all transform active:scale-98"
           >
             <Send className="w-4 h-4" />
             <span>Join Telegram Channel Now</span>
-          </button>
+          </a>
 
           {/* Secondary Actions */}
           <div className="mt-4 flex items-center justify-between w-full text-xs text-slate-500 dark:text-slate-400 px-1">
@@ -106,7 +117,7 @@ export const TelegramPopup: React.FC<TelegramPopupProps> = ({ settings }) => {
                 onChange={(e) => setDontShowAgain(e.target.checked)}
                 className="w-3.5 h-3.5 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
               />
-              <span>Don&apos;t show again today</span>
+              <span>Don&apos;t show again</span>
             </label>
 
             <button
