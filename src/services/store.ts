@@ -448,8 +448,19 @@ class StreamStore {
   }
 
   private mergeVideos(newVideos: Video[]) {
+    const existingMap = new Map<string, Video>();
+    this.videos.forEach((v) => existingMap.set(v.id, v));
+
     const map = new Map<string, Video>();
-    newVideos.forEach((v) => map.set(v.id, v));
+    newVideos.forEach((v) => {
+      const existing = existingMap.get(v.id);
+      if (existing) {
+        // Keep highest views to prevent fluctuating/decreasing
+        v.views = Math.max(existing.views, v.views);
+        v.likes = Math.max(existing.likes, v.likes);
+      }
+      map.set(v.id, v);
+    });
 
     const merged = Array.from(map.values());
     merged.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -469,10 +480,7 @@ class StreamStore {
         snapshot.forEach((docSnap) => {
           list.push(normalizeVideo(docSnap.id, docSnap.data()));
         });
-        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        this.videos = list;
-        localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(list));
-        this.notify();
+        this.mergeVideos(list);
       }, (err) => {
         console.warn('Firestore videos listener:', err.message);
       });

@@ -50,9 +50,14 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
   const [redirectTriggered, setRedirectTriggered] = useState(false);
   const timerRef = useRef<any>(null);
 
-  // Auto-increment real-time views on mount
+  // Auto-increment real-time views on mount (only once per session/view)
+  const hasIncrementedRef = useRef(false);
+
   useEffect(() => {
-    store.incrementViews(video.id);
+    if (!hasIncrementedRef.current) {
+      hasIncrementedRef.current = true;
+      store.incrementViews(video.id);
+    }
     const updated = store.getVideo(video.id);
     if (updated) {
       setCurrentVideo(updated);
@@ -348,6 +353,13 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
             <h1 className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-snug">
               {currentVideo.title}
             </h1>
+
+            {/* Description Display */}
+            {currentVideo.description && currentVideo.description.trim() !== '' && (
+              <div className="mt-3 p-3.5 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-xs sm:text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                {currentVideo.description}
+              </div>
+            )}
 
             {/* Real-time Stats & Action Bar */}
             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
