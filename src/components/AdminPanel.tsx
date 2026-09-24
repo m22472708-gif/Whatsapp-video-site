@@ -46,7 +46,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   settings,
   categories,
 }) => {
-  const [activeTab, setActiveTab] = useState<'videos' | 'banners' | 'telegram' | 'prompt'>('videos');
+  const [activeTab, setActiveTab] = useState<'videos' | 'banners' | 'telegram' | 'adwall' | 'adsterra' | 'prompt'>('videos');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -82,6 +82,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [tgDelay, setTgDelay] = useState(settings.telegramPopupDelaySec);
   const [tgEnabled, setTgEnabled] = useState(settings.telegramPopupEnabled);
   const [savedSettingsSuccess, setSavedSettingsSuccess] = useState(false);
+
+  // --- AD WALL & VIDEO UNLOCK FORM STATE ---
+  const [adWallEnabled, setAdWallEnabled] = useState(settings.unlockAdEnabled !== false);
+  const [adWallUrl, setAdWallUrl] = useState(settings.unlockAdUrl || '');
+  const [adWallClicks, setAdWallClicks] = useState(settings.unlockAdRequiredClicks ?? 2);
+  const [adWallWaitSec, setAdWallWaitSec] = useState(settings.unlockAdWaitSeconds ?? 10);
+  const [adWallBtnText, setAdWallBtnText] = useState(settings.unlockAdButtonText || 'Unlock Video (Watch Ads to Play)');
+  const [savedAdWallSuccess, setSavedAdWallSuccess] = useState(false);
+
+  // --- ADSTERRA ADS ENGINE FORM STATE (5x Multiplier & Continuous) ---
+  const [adsterraEnabled, setAdsterraEnabled] = useState(settings.adsterraEnabled !== false);
+  const [adsterraScript, setAdsterraScript] = useState(settings.adsterraScriptCode || '//pl25910243.highratecpm.com/a4/09/b3/a409b300f2e0e5d17bb66487779f76a5.js');
+  const [adsterraMultiplier, setAdsterraMultiplier] = useState(settings.adsterraMultiplier ?? 5);
+  const [adsterraContinuous, setAdsterraContinuous] = useState(settings.adsterraContinuous !== false);
+  const [adsterraPlacement, setAdsterraPlacement] = useState<'homepage' | 'video_page' | 'both'>(settings.adsterraPlacement || 'both');
+  const [adsterraDirectLink, setAdsterraDirectLink] = useState(settings.adsterraDirectLinkUrl || '');
+  const [savedAdsterraSuccess, setSavedAdsterraSuccess] = useState(false);
 
   // Preset thumbnails for easy one-click testing
   const PRESET_THUMBNAILS = [
@@ -211,6 +228,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setSavedSettingsSuccess(true);
     showToast('Telegram channel and popup settings saved!');
     setTimeout(() => setSavedSettingsSuccess(false), 3000);
+  };
+
+  // Save Ad Wall & Video Unlock Settings
+  const handleSaveAdWallSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    store.updateSettings({
+      unlockAdEnabled: adWallEnabled,
+      unlockAdUrl: adWallUrl.trim(),
+      unlockAdRequiredClicks: Math.max(1, Number(adWallClicks) || 1),
+      unlockAdWaitSeconds: Math.max(1, Number(adWallWaitSec) || 1),
+      unlockAdButtonText: adWallBtnText.trim() || 'Unlock Video (Watch Ads to Play)',
+    });
+    setSavedAdWallSuccess(true);
+    showToast('Video Unlock & Ad Wall settings saved to Firestore!');
+    setTimeout(() => setSavedAdWallSuccess(false), 3000);
+  };
+
+  // Save Adsterra Ads Engine Settings (5x Multiplier & Continuous)
+  const handleSaveAdsterraSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    store.updateSettings({
+      adsterraEnabled,
+      adsterraScriptCode: adsterraScript.trim(),
+      adsterraMultiplier: Math.max(1, Math.min(20, Number(adsterraMultiplier) || 5)),
+      adsterraContinuous,
+      adsterraPlacement,
+      adsterraDirectLinkUrl: adsterraDirectLink.trim(),
+    });
+    setSavedAdsterraSuccess(true);
+    showToast(`Adsterra Engine (${adsterraMultiplier}x Multiplier + Continuous) saved!`);
+    setTimeout(() => setSavedAdsterraSuccess(false), 3000);
   };
 
   // Filtered Videos
@@ -397,6 +445,33 @@ Key Admin Features Required:
           >
             <Send className="w-4 h-4" />
             <span>Telegram & Popup Settings</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('adwall')}
+            className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === 'adwall'
+                ? 'border-rose-500 text-rose-600 dark:text-rose-400'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+          >
+            <Lock className="w-4 h-4 text-rose-500" />
+            <span>Video Unlock & Ad Wall</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('adsterra')}
+            className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === 'adsterra'
+                ? 'border-rose-500 text-rose-600 dark:text-rose-400'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+          >
+            <Sliders className="w-4 h-4 text-amber-500" />
+            <span>Adsterra Engine ({adsterraMultiplier}x Continuous)</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black">
+              {adsterraMultiplier}x Power
+            </span>
           </button>
 
           <button
@@ -679,6 +754,347 @@ Key Admin Features Required:
                     </span>
                   )}
                 </div>
+              </form>
+            </div>
+          )}
+
+          {/* TAB: VIDEO UNLOCK & AD WALL SETTINGS */}
+          {activeTab === 'adwall' && (
+            <div className="max-w-2xl space-y-5">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/20 via-orange-950/10 to-transparent border border-rose-200 dark:border-rose-900/60 text-xs text-slate-700 dark:text-slate-300">
+                <div className="flex items-center gap-2 font-bold text-rose-600 dark:text-rose-400 mb-1">
+                  <Lock className="w-4 h-4" />
+                  <span>Video Unlock & Ad Wall Monetization System</span>
+                </div>
+                Configure the monetization paywall / ad gate for all video plays. Control the sponsor link, required number of visits, countdown timer, and button text in real-time.
+              </div>
+
+              <form onSubmit={handleSaveAdWallSettings} className="space-y-4">
+                {/* Enable Ad Wall Toggle */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                  <div>
+                    <label htmlFor="adWallToggle" className="text-xs font-bold text-slate-900 dark:text-white cursor-pointer block">
+                      Enable Video Unlock Ad Wall
+                    </label>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      When enabled, videos remain locked until viewers complete the required ad views.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    id="adWallToggle"
+                    checked={adWallEnabled}
+                    onChange={(e) => setAdWallEnabled(e.target.checked)}
+                    className="w-5 h-5 accent-rose-600 rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Ad Target Link */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Monetization Ad / Sponsor Link (unlockAdUrl)
+                  </label>
+                  <input
+                    type="url"
+                    value={adWallUrl}
+                    onChange={(e) => setAdWallUrl(e.target.value)}
+                    placeholder="https://example.com/ad-monetization-link or https://t.me/your_channel"
+                    required
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs sm:text-sm border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 font-mono"
+                  />
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    This URL opens in a new tab when the user clicks the "Unlock Video" button.
+                  </p>
+                </div>
+
+                {/* Grid for Clicks and Countdown Seconds */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Required Ad Clicks (unlockAdRequiredClicks)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={adWallClicks}
+                      onChange={(e) => setAdWallClicks(Math.max(1, Number(e.target.value)))}
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs sm:text-sm border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                    />
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      Number of ads user must view (e.g. 2, 3, or 5).
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Wait Countdown Seconds (unlockAdWaitSeconds)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={120}
+                      value={adWallWaitSec}
+                      onChange={(e) => setAdWallWaitSec(Math.max(1, Number(e.target.value)))}
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs sm:text-sm border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                    />
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      Countdown timer duration per click (e.g. 10s).
+                    </p>
+                  </div>
+                </div>
+
+                {/* Button Text Customization */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Button Text (unlockAdButtonText)
+                  </label>
+                  <input
+                    type="text"
+                    value={adWallBtnText}
+                    onChange={(e) => setAdWallBtnText(e.target.value)}
+                    required
+                    placeholder="Unlock Video (Watch Ads to Play)"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs sm:text-sm border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                  />
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    Text displayed on the action button before click.
+                  </p>
+                </div>
+
+                {/* Save Button & Feedback */}
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md transition-all active:scale-95"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Ad Wall Settings</span>
+                  </button>
+
+                  {savedAdWallSuccess && (
+                    <span className="text-xs text-emerald-500 font-bold flex items-center gap-1 animate-in fade-in">
+                      <Check className="w-4 h-4" /> Saved Successfully!
+                    </span>
+                  )}
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* TAB: ADSTERRA ADS ENGINE (5x MULTIPLIER & CONTINUOUS EXECUTION) */}
+          {activeTab === 'adsterra' && (
+            <div className="max-w-2xl space-y-5">
+              
+              {/* Feature Banner */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/30 text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-amber-600 dark:text-amber-400">
+                  <Sliders className="w-4 h-4" />
+                  <span>Adsterra Ads Engine — Multiplier & Continuous মোড</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+                  ১. <strong>Multi-Script Multiplier Injection:</strong> অ্যাডমিন থেকে যত Multiplier সেট করবেন (যেমন: {adsterraMultiplier}x), সাইটে সমান্তরালে {adsterraMultiplier}টি ইনস্ট্যান্স ইনজেক্ট হবে।<br/>
+                  ২. <strong>Continuous Execution (কখনো অফ হবে না):</strong> ৫ বার বা তার বেশি ট্রানজেকশনের পরও অ্যাড বন্ধ হবে না। ব্যবহারকারী হোমপেজ বা ভিডিও পেজের যেকোনো জায়গায় ক্লিক করলেই আজীবন অবিরাম পপআন্ডার ট্রিগার হবে।<br/>
+                  ৩. <strong>Placement & Real-time Sync:</strong> ফায়ারবেস Firestore-এর সাথে রিয়েল-টাইম সিঙ্ক।
+                </p>
+              </div>
+
+              <form onSubmit={handleSaveAdsterraSettings} className="space-y-4">
+                
+                {/* 1. Engine Master Switch */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                  <div>
+                    <label htmlFor="adsterraEnableToggle" className="text-xs font-bold text-slate-900 dark:text-white cursor-pointer block">
+                      Enable Adsterra Ads Engine (বিজ্ঞাপন ইঞ্জিন সক্রিয় করুন)
+                    </label>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      Master toggle to turn Adsterra monetization on or off site-wide.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    id="adsterraEnableToggle"
+                    checked={adsterraEnabled}
+                    onChange={(e) => setAdsterraEnabled(e.target.checked)}
+                    className="w-5 h-5 accent-amber-600 rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* 2. Multiplier Setting (Multi-Script Multiplier Injection) */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-xs font-bold text-slate-900 dark:text-white block">
+                        Multi-Script Multiplier ({adsterraMultiplier}x Instances)
+                      </label>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        একই সাথে সমান্তরালে সাইটে কতটি স্ক্রিপ্ট ইনস্ট্যান্স ইনজেক্ট হবে (ডিফল্ট: ৫x)।
+                      </p>
+                    </div>
+                    <div className="px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black text-sm shadow-sm">
+                      {adsterraMultiplier}x
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min={1}
+                      max={10}
+                      value={adsterraMultiplier}
+                      onChange={(e) => setAdsterraMultiplier(Number(e.target.value))}
+                      className="flex-1 accent-amber-500 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
+                    />
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 5, 8, 10].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setAdsterraMultiplier(num)}
+                          className={`px-2 py-1 rounded-lg text-xs font-bold transition-colors ${
+                            adsterraMultiplier === num
+                              ? 'bg-amber-500 text-slate-950 shadow-xs'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                          }`}
+                        >
+                          {num}x
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Continuous Execution Mode Switch */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                  <div>
+                    <label htmlFor="adsterraContinuousToggle" className="text-xs font-bold text-slate-900 dark:text-white cursor-pointer block">
+                      Continuous Execution Mode (অবিরাম মোড - কখনো বন্ধ হবে না)
+                    </label>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      ব্যবহারকারী সাইটের যেকোনো জায়গায় ক্লিক করলে আজীবন অবিরাম পপআন্ডার/সোশ্যাল বার চলতে থাকবে।
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    id="adsterraContinuousToggle"
+                    checked={adsterraContinuous}
+                    onChange={(e) => setAdsterraContinuous(e.target.checked)}
+                    className="w-5 h-5 accent-amber-600 rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* 4. Placement Selector (Homepage, Video Page, or Both) */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+                  <label className="text-xs font-bold text-slate-900 dark:text-white block">
+                    Placement (কোন কোন পেজে চলবে)
+                  </label>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                    হোমপেজ, ভিডিও প্লেয়ার পেজ নাকি উভয় পেজেই চলবে সিলেক্ট করুন।
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAdsterraPlacement('both')}
+                      className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                        adsterraPlacement === 'both'
+                          ? 'border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-xs'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      🌟 Both (উভয় পেজে)
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setAdsterraPlacement('homepage')}
+                      className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                        adsterraPlacement === 'homepage'
+                          ? 'border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-xs'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      🏠 Homepage Only
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setAdsterraPlacement('video_page')}
+                      className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                        adsterraPlacement === 'video_page'
+                          ? 'border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-xs'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      🎬 Video Page Only
+                    </button>
+                  </div>
+                </div>
+
+                {/* 5. Adsterra Script Code / Popunder Tag */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Adsterra Script Code / Popunder Tag (স্ক্রিপ্ট কোড বা URL)
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setAdsterraScript('//pl25910243.highratecpm.com/a4/09/b3/a409b300f2e0e5d17bb66487779f76a5.js')}
+                        className="text-[10px] text-amber-500 hover:underline"
+                      >
+                        Reset High CPM Script
+                      </button>
+                    </div>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={adsterraScript}
+                    onChange={(e) => setAdsterraScript(e.target.value)}
+                    placeholder="//pl25910243.highratecpm.com/a4/09/b3/a409b300f2e0e5d17bb66487779f76a5.js or <script ...></script>"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs font-mono border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  />
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    Paste your Adsterra Popunder, Social Bar, or In-Page Push script tag or JS link.
+                  </p>
+                </div>
+
+                {/* 6. Adsterra Direct Link / Monetization URL */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Adsterra Direct Link (বিকল্প ডিরেক্ট লিংক)
+                  </label>
+                  <input
+                    type="url"
+                    value={adsterraDirectLink}
+                    onChange={(e) => setAdsterraDirectLink(e.target.value)}
+                    placeholder="https://www.highperformanceformat.com/... or direct link"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs font-mono border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  />
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    Optional fallback Smart Direct Link for maximum CPM monetization.
+                  </p>
+                </div>
+
+                {/* Submit Buttons & Real-time Confirmation */}
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-2 shadow-md shadow-amber-500/20 transition-all active:scale-95"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Adsterra Engine Settings</span>
+                  </button>
+
+                  {savedAdsterraSuccess && (
+                    <span className="text-xs text-emerald-500 font-bold flex items-center gap-1 animate-in fade-in">
+                      <Check className="w-4 h-4" /> Real-time Saved to Firestore!
+                    </span>
+                  )}
+                </div>
+
               </form>
             </div>
           )}

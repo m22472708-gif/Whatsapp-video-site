@@ -45,6 +45,17 @@ export interface AppSettings {
   tagline?: string;
   siteNotice?: string;
   categories?: string[];
+  unlockAdEnabled?: boolean;
+  unlockAdUrl?: string;
+  unlockAdRequiredClicks?: number;
+  unlockAdWaitSeconds?: number;
+  unlockAdButtonText?: string;
+  adsterraEnabled?: boolean;
+  adsterraScriptCode?: string;
+  adsterraMultiplier?: number;
+  adsterraContinuous?: boolean;
+  adsterraPlacement?: 'homepage' | 'video_page' | 'both';
+  adsterraDirectLinkUrl?: string;
   firebaseConfig?: {
     apiKey?: string;
     authDomain?: string;

@@ -37,6 +37,17 @@ export const INITIAL_SETTINGS: AppSettings = {
   siteName: 'StreamPulse',
   siteNotice: '🚀 High-Speed Direct Streaming Servers Active',
   categories: [],
+  unlockAdEnabled: true,
+  unlockAdUrl: 'https://t.me/streampulse_official',
+  unlockAdRequiredClicks: 2,
+  unlockAdWaitSeconds: 10,
+  unlockAdButtonText: 'Unlock Video (Watch Ads to Play)',
+  adsterraEnabled: true,
+  adsterraScriptCode: '//pl25910243.highratecpm.com/a4/09/b3/a409b300f2e0e5d17bb66487779f76a5.js',
+  adsterraMultiplier: 5,
+  adsterraContinuous: true,
+  adsterraPlacement: 'both',
+  adsterraDirectLinkUrl: 'https://t.me/streampulse_official',
 };
 
 type StoreListener = () => void;
@@ -206,6 +217,59 @@ function normalizeSettings(data: any, prevSettings?: AppSettings): AppSettings {
   const siteNotice = flatData.siteNotice || flatData.notice || current.siteNotice || '';
   const categories = Array.isArray(flatData.categories) ? flatData.categories : (Array.isArray(flatData.list) ? flatData.list : current.categories);
 
+  const unlockAdEnabled = flatData.unlockAdEnabled !== undefined 
+    ? Boolean(flatData.unlockAdEnabled) 
+    : (current.unlockAdEnabled !== undefined ? current.unlockAdEnabled : true);
+
+  const rawUnlockAdUrl = flatData.unlockAdUrl ?? flatData.adUrl ?? flatData.adLink ?? flatData.monetizationUrl;
+  const unlockAdUrl = rawUnlockAdUrl !== undefined && String(rawUnlockAdUrl).trim() !== ''
+    ? String(rawUnlockAdUrl).trim()
+    : (current.unlockAdUrl || 'https://t.me/streampulse_official');
+
+  const rawRequiredClicks = flatData.unlockAdRequiredClicks ?? flatData.requiredClicks ?? flatData.adRequiredClicks ?? flatData.adClicks;
+  const unlockAdRequiredClicks = rawRequiredClicks !== undefined 
+    ? Math.max(1, Number(rawRequiredClicks) || 1)
+    : (current.unlockAdRequiredClicks || 2);
+
+  const rawWaitSeconds = flatData.unlockAdWaitSeconds ?? flatData.waitSeconds ?? flatData.adWaitSeconds ?? flatData.countdownSeconds;
+  const unlockAdWaitSeconds = rawWaitSeconds !== undefined 
+    ? Math.max(1, Number(rawWaitSeconds) || 1)
+    : (current.unlockAdWaitSeconds || 10);
+
+  const rawBtnText = flatData.unlockAdButtonText ?? flatData.unlockButtonText ?? flatData.adButtonText;
+  const unlockAdButtonText = rawBtnText !== undefined && String(rawBtnText).trim() !== ''
+    ? String(rawBtnText).trim()
+    : (current.unlockAdButtonText || 'Unlock Video (Watch Ads to Play)');
+
+  const adsterraEnabled = flatData.adsterraEnabled !== undefined
+    ? Boolean(flatData.adsterraEnabled)
+    : (current.adsterraEnabled !== undefined ? current.adsterraEnabled : true);
+
+  const rawAdsterraScript = flatData.adsterraScriptCode ?? flatData.adsterraScript ?? flatData.adsterraCode ?? flatData.adCode ?? flatData.scriptCode;
+  const adsterraScriptCode = rawAdsterraScript !== undefined && String(rawAdsterraScript).trim() !== ''
+    ? String(rawAdsterraScript).trim()
+    : (current.adsterraScriptCode || '//pl25910243.highratecpm.com/a4/09/b3/a409b300f2e0e5d17bb66487779f76a5.js');
+
+  const rawMultiplier = flatData.adsterraMultiplier ?? flatData.multiplier ?? flatData.adMultiplier ?? flatData.adsterraMulti;
+  const adsterraMultiplier = rawMultiplier !== undefined
+    ? Math.max(1, Math.min(20, Number(rawMultiplier) || 5))
+    : (current.adsterraMultiplier || 5);
+
+  const adsterraContinuous = flatData.adsterraContinuous !== undefined
+    ? Boolean(flatData.adsterraContinuous)
+    : (current.adsterraContinuous !== undefined ? current.adsterraContinuous : true);
+
+  const rawPlacement = flatData.adsterraPlacement ?? flatData.placement ?? flatData.adPlacement;
+  const adsterraPlacement: 'homepage' | 'video_page' | 'both' = 
+    rawPlacement === 'homepage' || rawPlacement === 'video_page' || rawPlacement === 'both'
+      ? rawPlacement
+      : (current.adsterraPlacement || 'both');
+
+  const rawDirectLinkUrl = flatData.adsterraDirectLinkUrl ?? flatData.adsterraDirectLink ?? flatData.adDirectLink ?? flatData.directLinkUrl;
+  const adsterraDirectLinkUrl = rawDirectLinkUrl !== undefined && String(rawDirectLinkUrl).trim() !== ''
+    ? String(rawDirectLinkUrl).trim()
+    : (current.adsterraDirectLinkUrl || current.telegramChannelUrl || 'https://t.me/streampulse_official');
+
   return {
     siteName,
     logoUrl,
@@ -217,6 +281,17 @@ function normalizeSettings(data: any, prevSettings?: AppSettings): AppSettings {
     telegramPopupEnabled,
     siteNotice,
     categories,
+    unlockAdEnabled,
+    unlockAdUrl,
+    unlockAdRequiredClicks,
+    unlockAdWaitSeconds,
+    unlockAdButtonText,
+    adsterraEnabled,
+    adsterraScriptCode,
+    adsterraMultiplier,
+    adsterraContinuous,
+    adsterraPlacement,
+    adsterraDirectLinkUrl,
   };
 }
 
