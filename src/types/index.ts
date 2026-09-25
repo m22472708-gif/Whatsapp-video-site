@@ -40,6 +40,8 @@ export interface AppSettings {
   telegramPopupDescription: string;
   telegramPopupDelaySec: number;
   telegramPopupEnabled: boolean;
+  telegramProfilePicUrl?: string;
+  telegramCoverPicUrl?: string;
   siteName: string;
   logoUrl?: string;
   tagline?: string;
@@ -50,12 +52,6 @@ export interface AppSettings {
   unlockAdRequiredClicks?: number;
   unlockAdWaitSeconds?: number;
   unlockAdButtonText?: string;
-  adsterraEnabled?: boolean;
-  adsterraScriptCode?: string;
-  adsterraMultiplier?: number;
-  adsterraContinuous?: boolean;
-  adsterraPlacement?: 'homepage' | 'video_page' | 'both';
-  adsterraDirectLinkUrl?: string;
   firebaseConfig?: {
     apiKey?: string;
     authDomain?: string;

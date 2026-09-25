@@ -34,6 +34,8 @@ export const INITIAL_SETTINGS: AppSettings = {
   telegramPopupDescription: 'Get daily direct HD movie links, latest web series, exclusive updates & requested videos first!',
   telegramPopupDelaySec: 4,
   telegramPopupEnabled: true,
+  telegramProfilePicUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80',
+  telegramCoverPicUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&auto=format&fit=crop&q=80',
   siteName: 'StreamPulse',
   siteNotice: '🚀 High-Speed Direct Streaming Servers Active',
   categories: [],
@@ -42,12 +44,6 @@ export const INITIAL_SETTINGS: AppSettings = {
   unlockAdRequiredClicks: 2,
   unlockAdWaitSeconds: 10,
   unlockAdButtonText: 'Unlock Video (Watch Ads to Play)',
-  adsterraEnabled: true,
-  adsterraScriptCode: '//pl25910243.highratecpm.com/a4/09/b3/a409b300f2e0e5d17bb66487779f76a5.js',
-  adsterraMultiplier: 5,
-  adsterraContinuous: true,
-  adsterraPlacement: 'both',
-  adsterraDirectLinkUrl: 'https://t.me/streampulse_official',
 };
 
 type StoreListener = () => void;
@@ -241,34 +237,41 @@ function normalizeSettings(data: any, prevSettings?: AppSettings): AppSettings {
     ? String(rawBtnText).trim()
     : (current.unlockAdButtonText || 'Unlock Video (Watch Ads to Play)');
 
-  const adsterraEnabled = flatData.adsterraEnabled !== undefined
-    ? Boolean(flatData.adsterraEnabled)
-    : (current.adsterraEnabled !== undefined ? current.adsterraEnabled : true);
+  const rawTelegramProfilePic = 
+    flatData.telegramProfilePicUrl ??
+    flatData.telegramProfilePic ??
+    flatData.telegramProfileUrl ??
+    flatData.telegramAvatarUrl ??
+    flatData.tgProfilePic ??
+    flatData.tgProfile ??
+    flatData.tgAvatar ??
+    flatData.telegram_profile_pic_url ??
+    flatData.telegram_profile_pic ??
+    flatData.profilePicUrl ??
+    flatData.profilePic ??
+    flatData.profile_pic;
 
-  const rawAdsterraScript = flatData.adsterraScriptCode ?? flatData.adsterraScript ?? flatData.adsterraCode ?? flatData.adCode ?? flatData.scriptCode;
-  const adsterraScriptCode = rawAdsterraScript !== undefined && String(rawAdsterraScript).trim() !== ''
-    ? String(rawAdsterraScript).trim()
-    : (current.adsterraScriptCode || '//pl25910243.highratecpm.com/a4/09/b3/a409b300f2e0e5d17bb66487779f76a5.js');
+  const telegramProfilePicUrl = rawTelegramProfilePic !== undefined
+    ? String(rawTelegramProfilePic).trim()
+    : (current.telegramProfilePicUrl || '');
 
-  const rawMultiplier = flatData.adsterraMultiplier ?? flatData.multiplier ?? flatData.adMultiplier ?? flatData.adsterraMulti;
-  const adsterraMultiplier = rawMultiplier !== undefined
-    ? Math.max(1, Math.min(20, Number(rawMultiplier) || 5))
-    : (current.adsterraMultiplier || 5);
+  const rawTelegramCoverPic =
+    flatData.telegramCoverPicUrl ??
+    flatData.telegramCoverPic ??
+    flatData.telegramCoverUrl ??
+    flatData.telegramBannerUrl ??
+    flatData.tgCoverPic ??
+    flatData.tgCover ??
+    flatData.tgBanner ??
+    flatData.telegram_cover_pic_url ??
+    flatData.telegram_cover_pic ??
+    flatData.coverPicUrl ??
+    flatData.coverPic ??
+    flatData.cover_pic;
 
-  const adsterraContinuous = flatData.adsterraContinuous !== undefined
-    ? Boolean(flatData.adsterraContinuous)
-    : (current.adsterraContinuous !== undefined ? current.adsterraContinuous : true);
-
-  const rawPlacement = flatData.adsterraPlacement ?? flatData.placement ?? flatData.adPlacement;
-  const adsterraPlacement: 'homepage' | 'video_page' | 'both' = 
-    rawPlacement === 'homepage' || rawPlacement === 'video_page' || rawPlacement === 'both'
-      ? rawPlacement
-      : (current.adsterraPlacement || 'both');
-
-  const rawDirectLinkUrl = flatData.adsterraDirectLinkUrl ?? flatData.adsterraDirectLink ?? flatData.adDirectLink ?? flatData.directLinkUrl;
-  const adsterraDirectLinkUrl = rawDirectLinkUrl !== undefined && String(rawDirectLinkUrl).trim() !== ''
-    ? String(rawDirectLinkUrl).trim()
-    : (current.adsterraDirectLinkUrl || current.telegramChannelUrl || 'https://t.me/streampulse_official');
+  const telegramCoverPicUrl = rawTelegramCoverPic !== undefined
+    ? String(rawTelegramCoverPic).trim()
+    : (current.telegramCoverPicUrl || '');
 
   return {
     siteName,
@@ -279,6 +282,8 @@ function normalizeSettings(data: any, prevSettings?: AppSettings): AppSettings {
     telegramPopupDescription,
     telegramPopupDelaySec,
     telegramPopupEnabled,
+    telegramProfilePicUrl,
+    telegramCoverPicUrl,
     siteNotice,
     categories,
     unlockAdEnabled,
@@ -286,12 +291,6 @@ function normalizeSettings(data: any, prevSettings?: AppSettings): AppSettings {
     unlockAdRequiredClicks,
     unlockAdWaitSeconds,
     unlockAdButtonText,
-    adsterraEnabled,
-    adsterraScriptCode,
-    adsterraMultiplier,
-    adsterraContinuous,
-    adsterraPlacement,
-    adsterraDirectLinkUrl,
   };
 }
 

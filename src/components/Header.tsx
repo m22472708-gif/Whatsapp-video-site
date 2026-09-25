@@ -14,7 +14,9 @@ import {
   Ghost,
   Smile,
   Flame,
-  Clapperboard
+  Clapperboard,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Category, Video } from '../types';
 
@@ -41,6 +43,8 @@ export const Header: React.FC<HeaderProps> = ({
   categories,
   searchQuery,
   onSearchChange,
+  isDarkMode,
+  onToggleTheme,
   telegramUrl,
   siteName,
   logoUrl,
@@ -161,8 +165,21 @@ export const Header: React.FC<HeaderProps> = ({
 
             </div>
 
-            {/* Right: Authentic Official Telegram Button */}
-            <div className="flex items-center">
+            {/* Right: Theme Toggle & Authentic Official Telegram Button */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={onToggleTheme}
+                className="p-2 sm:p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200/80 dark:border-slate-800 active:scale-90"
+                aria-label="Toggle theme"
+                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {isDarkMode ? (
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+                ) : (
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
+                )}
+              </button>
+
               <a
                 href={telegramUrl}
                 target="_blank"

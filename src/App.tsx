@@ -16,7 +16,6 @@ import { BannerHero } from './components/BannerHero';
 import { VideoCard } from './components/VideoCard';
 import { VideoPlayView } from './components/VideoPlayView';
 import { TelegramPopup } from './components/TelegramPopup';
-import { AdsterraEngine } from './components/AdsterraEngine';
 import { Footer } from './components/Footer';
 import { 
   Film, 
@@ -148,12 +147,6 @@ export default function App() {
 
       {/* 4-Second Glass Telegram Popup */}
       <TelegramPopup settings={settings} />
-
-      {/* Adsterra Ads Engine (Multi-Script Multiplier Injection & Continuous Execution) */}
-      <AdsterraEngine 
-        settings={settings} 
-        currentPage={activeVideo ? 'video_page' : 'homepage'} 
-      />
 
       {/* Header */}
       <Header
