@@ -7,11 +7,9 @@ import {
   Heart, 
   Share2, 
   Clock, 
-  MessageSquare, 
   Send, 
   Check, 
   ExternalLink, 
-  ThumbsUp,
   Volume2,
   VolumeX,
   Maximize,
@@ -22,7 +20,7 @@ import {
   Loader2,
   ShieldAlert
 } from 'lucide-react';
-import { Video, Comment, AppSettings } from '../types';
+import { Video, AppSettings } from '../types';
 import { store } from '../services/store';
 import { VideoCard } from './VideoCard';
 
@@ -44,9 +42,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
   // Real-time state
   const [currentVideo, setCurrentVideo] = useState<Video>(video);
   const [isLiked, setIsLiked] = useState<boolean>(store.isVideoLiked(video.id));
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [commentName, setCommentName] = useState('');
-  const [commentText, setCommentText] = useState('');
   const [copiedShare, setCopiedShare] = useState(false);
 
   // Settings from Firestore doc "settings/general"
@@ -127,7 +122,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
     if (updated) {
       setCurrentVideo(updated);
     }
-    setComments(store.getComments(video.id));
     setIsLiked(store.isVideoLiked(video.id));
     setIsLoadingStream(false);
     setRedirectTriggered(false);
@@ -139,7 +133,7 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
     };
   }, [video.id]);
 
-  // Subscribe to real-time store updates (views, comments, likes, settings)
+  // Subscribe to real-time store updates (views, likes, settings)
   useEffect(() => {
     const unsubscribe = store.subscribe(() => {
       const updated = store.getVideo(currentVideo.id);
@@ -147,7 +141,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
         setCurrentVideo({ ...updated });
       }
       setIsLiked(store.isVideoLiked(currentVideo.id));
-      setComments(store.getComments(currentVideo.id));
       setSettings(store.getSettings());
     });
     return () => unsubscribe();
@@ -271,18 +264,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
     setCurrentVideo((prev) => ({ ...prev, likes: res.likes }));
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    const author = commentName.trim() || 'Viewer #' + Math.floor(Math.random() * 9000 + 1000);
-    store.addComment(currentVideo.id, author, commentText.trim());
-    setCommentText('');
-  };
-
-  const handleLikeComment = (commentId: string) => {
-    store.likeComment(commentId);
-  };
-
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -301,17 +282,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
     if (views >= 1000000) return (views / 1000000).toFixed(1) + 'M';
     if (views >= 1000) return (views / 1000).toFixed(1) + 'K';
     return views.toString();
-  };
-
-  const formatTimeAgo = (timestamp: number): string => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return 'Just now';
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
   };
 
   // Related videos
@@ -663,101 +633,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
                 </a>
               </div>
             )}
-
-          </div>
-
-          {/* Real-time Comments Section */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-rose-500" />
-                <h2 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-slate-100">
-                  Comments
-                </h2>
-                <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold">
-                  {comments.length}
-                </span>
-              </div>
-            </div>
-
-            {/* Comment Form */}
-            <form onSubmit={handleAddComment} className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="Your Name (Optional)"
-                  value={commentName}
-                  onChange={(e) => setCommentName(e.target.value)}
-                  className="px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
-                />
-              </div>
-
-              <div className="relative">
-                <textarea
-                  rows={3}
-                  placeholder="Join the discussion... Share your thoughts about this movie!"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={!commentText.trim()}
-                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-rose-600/30 transition-all"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Post Comment</span>
-                </button>
-              </div>
-            </form>
-
-            {/* Comments List */}
-            <div className="space-y-3.5 pt-2">
-              {comments.length === 0 ? (
-                <div className="text-center py-8 text-slate-400 text-xs sm:text-sm">
-                  No comments yet. Be the first to comment on this video!
-                </div>
-              ) : (
-                comments.map((comment) => (
-                  <div 
-                    key={comment.id}
-                    className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 rounded-full ${comment.avatarColor} text-white font-bold text-xs flex items-center justify-center uppercase shadow-xs`}>
-                          {comment.authorName.charAt(0)}
-                        </div>
-                        <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-200">
-                          {comment.authorName}
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-400">
-                        {formatTimeAgo(comment.timestamp)}
-                      </span>
-                    </div>
-
-                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 pl-9">
-                      {comment.text}
-                    </p>
-
-                    <div className="pl-9 pt-1 flex items-center gap-3">
-                      <button
-                        onClick={() => handleLikeComment(comment.id)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-rose-500 transition-colors"
-                      >
-                        <ThumbsUp className="w-3 h-3" />
-                        <span>{comment.likes > 0 ? comment.likes : 'Like'}</span>
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
 
           </div>
 
