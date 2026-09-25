@@ -137,11 +137,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 relative selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-slate-100 transition-colors duration-200 relative selection:bg-sky-500 selection:text-white">
       
-      {/* Dynamic Ambient Background Aura */}
+      {/* Dynamic Ambient Background Aura with Telegram-Matching Subtle Blue */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-to-b from-rose-500/10 via-amber-500/5 to-transparent blur-3xl rounded-full" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-to-b from-sky-500/10 via-indigo-500/5 to-transparent blur-3xl rounded-full" />
         <div className="absolute top-1/3 -left-32 w-80 h-80 bg-sky-500/5 dark:bg-sky-500/10 blur-3xl rounded-full" />
       </div>
 

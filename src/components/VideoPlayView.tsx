@@ -25,8 +25,6 @@ import {
 import { Video, Comment, AppSettings } from '../types';
 import { store } from '../services/store';
 import { VideoCard } from './VideoCard';
-import { AdsterraBannerSlot } from './AdsterraBannerSlot';
-import { triggerAdsterraPopunder } from './AdsterraEngine';
 
 interface VideoPlayViewProps {
   video: Video;
@@ -173,7 +171,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
   }, [isLoadingStream]);
 
   const handleStartPlay = () => {
-    triggerAdsterraPopunder();
     if (!isUnlocked) {
       scrollToUnlock();
       return;
@@ -212,7 +209,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
 
   // Flow: Handle Click on Unlock Video Button
   const handleUnlockButtonClick = () => {
-    triggerAdsterraPopunder();
     if (isCountingDown || isUnlocked) return;
 
     // a) Open unlockAdUrl in a new browser tab using window.open(unlockAdUrl, '_blank')
@@ -511,12 +507,6 @@ export const VideoPlayView: React.FC<VideoPlayViewProps> = ({
             </div>
           </div>
 
-          {/* Adsterra Sponsor & Banner Ad Slot (Right Below Video Player) */}
-          <AdsterraBannerSlot 
-            settings={settings} 
-            slotPosition="video_player_bottom" 
-            className="!px-0 !my-1" 
-          />
 
           {/* Video Metadata & Actions */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm">
