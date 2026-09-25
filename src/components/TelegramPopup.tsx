@@ -65,13 +65,18 @@ export const TelegramPopup: React.FC<TelegramPopupProps> = ({ settings }) => {
     // Only skip if explicitly turned off in settings
     if (settings && settings.telegramPopupEnabled === false) return;
 
-    // Show promptly on every refresh/page load
+    // Use configured delay in seconds (default: 4s)
+    const rawDelay = settings?.telegramPopupDelaySec;
+    const delaySeconds = typeof rawDelay === 'number' && !isNaN(rawDelay) && rawDelay >= 0
+      ? rawDelay
+      : (Number(rawDelay) || 4);
+
     const timer = setTimeout(() => {
       setIsOpen(true);
-    }, 500);
+    }, delaySeconds * 1000);
 
     return () => clearTimeout(timer);
-  }, [settings?.telegramPopupEnabled]);
+  }, [settings?.telegramPopupEnabled, settings?.telegramPopupDelaySec]);
 
   // Support custom event to open popup on demand
   useEffect(() => {

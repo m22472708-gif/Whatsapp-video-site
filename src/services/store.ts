@@ -208,7 +208,10 @@ function normalizeSettings(data: any, prevSettings?: AppSettings): AppSettings {
 
   const telegramPopupTitle = flatData.telegramPopupTitle || flatData.popupTitle || current.telegramPopupTitle;
   const telegramPopupDescription = flatData.telegramPopupDescription || flatData.popupDescription || current.telegramPopupDescription;
-  const telegramPopupDelaySec = Number(flatData.telegramPopupDelaySec || flatData.popupDelay || flatData.delay) || current.telegramPopupDelaySec || 4;
+  const rawTgDelay = flatData.telegramPopupDelaySec ?? flatData.popupDelay ?? flatData.delay;
+  const telegramPopupDelaySec = rawTgDelay !== undefined && !isNaN(Number(rawTgDelay))
+    ? Math.max(0, Number(rawTgDelay))
+    : (current.telegramPopupDelaySec ?? 4);
   const telegramPopupEnabled = flatData.telegramPopupEnabled !== false && flatData.popupEnabled !== false;
   const siteNotice = flatData.siteNotice || flatData.notice || current.siteNotice || '';
   const categories = Array.isArray(flatData.categories) ? flatData.categories : (Array.isArray(flatData.list) ? flatData.list : current.categories);
