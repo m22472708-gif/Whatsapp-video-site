@@ -14,9 +14,7 @@ import {
   Ghost,
   Smile,
   Flame,
-  Clapperboard,
-  Sun,
-  Moon
+  Clapperboard
 } from 'lucide-react';
 import { Category, Video } from '../types';
 
@@ -43,8 +41,6 @@ export const Header: React.FC<HeaderProps> = ({
   categories,
   searchQuery,
   onSearchChange,
-  isDarkMode,
-  onToggleTheme,
   telegramUrl,
   siteName,
   logoUrl,
@@ -102,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-white/90 dark:bg-slate-950/90 border-b border-slate-200/80 dark:border-slate-800/80 transition-all duration-200 shadow-xs">
+      <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/80 dark:border-slate-800/80 transition-all duration-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           
           {/* Header Bar: Left [Menu + Logo] --- Right [Telegram Icon ONLY] */}
@@ -114,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Clean Hamburger Menu Button */}
               <button
                 onClick={() => setMenuOpen(true)}
-                className="p-2 sm:p-2.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/90 active:scale-90 transition-all"
+                className="p-2 sm:p-2.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-rose-500 dark:hover:text-rose-400 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 active:scale-90 transition-all"
                 aria-label="Open Navigation Menu"
                 title="Browse Categories"
               >
@@ -165,21 +161,8 @@ export const Header: React.FC<HeaderProps> = ({
 
             </div>
 
-            {/* Right: Theme Toggle & Authentic Official Telegram Button */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                onClick={onToggleTheme}
-                className="p-2 sm:p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200/80 dark:border-slate-800 active:scale-90"
-                aria-label="Toggle theme"
-                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              >
-                {isDarkMode ? (
-                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
-                ) : (
-                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
-                )}
-              </button>
-
+            {/* Right: Authentic Official Telegram Button */}
+            <div className="flex items-center">
               <a
                 href={telegramUrl}
                 target="_blank"
@@ -218,12 +201,12 @@ export const Header: React.FC<HeaderProps> = ({
           />
 
           {/* Drawer Body */}
-          <div className="relative w-5/6 max-w-xs h-full bg-white dark:bg-slate-900 shadow-2xl flex flex-col justify-between border-r border-slate-200 dark:border-slate-800 z-10 animate-in slide-in-from-left duration-250">
+          <div className="relative w-5/6 max-w-xs h-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl flex flex-col justify-between border-r border-slate-200 dark:border-slate-800 z-10 animate-in slide-in-from-left duration-250">
             
             <div className="p-5 flex flex-col h-full overflow-hidden">
               
               {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
                 <div className="flex items-center gap-2.5">
                   {hasValidLogo ? (
                     <img 
